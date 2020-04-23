@@ -1,0 +1,5 @@
+# /etc/udev/rules.d/10-ir.rules
+ # vim:set ft=udevrules:
+ #
+ # remote control 0471:2168
+ SUBSYSTEM=="usbmisc", ATTRS{idVendor}=="0471", ATTRS{idProduct}=="20cc", SYMLINK+="remote", ACTION=="add", RUN+="/sbin/initctl --quiet emit --no-wait ir-ready"
