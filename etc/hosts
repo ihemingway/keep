@@ -1,0 +1,4 @@
+127.0.0.1       localhost
+#127.0.1.1       sconesy
+192.168.1.146   cloud   cloud.boxclever.me
+# The following lines are desirable for IPv6 capable hosts
