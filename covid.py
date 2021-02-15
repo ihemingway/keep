@@ -37,7 +37,7 @@ def process_line(x):
     except ValueError:
         tests = "NA"
     try:
-        percentage = truncate((cases / tests) * 100, 3)
+        percentage = truncate((cases / tests) * 100, 2)
     except TypeError:
         percentage = "NA"
     return date, human_date, cases, tests, percentage
