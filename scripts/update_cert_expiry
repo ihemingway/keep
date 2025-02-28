@@ -1,0 +1,8 @@
+#!/bin/bash
+d=$(cat /etc/nginx/certs/home.boxclever.me.crt | openssl x509 -noout -enddate)
+line="home.boxclever.me.crt expiry: ${d#*=}"
+sed -i "s/home.boxclever.me.crt.*/${line}/g" /etc/motd
+
+d=$(cat /etc/nginx/certs/sconesy.boxclever.me.crt | openssl x509 -noout -enddate)
+line="sconesy.boxclever.me.crt expiry: ${d#*=}"
+sed -i "s/sconesy.boxclever.me.crt.*/${line}/g" /etc/motd

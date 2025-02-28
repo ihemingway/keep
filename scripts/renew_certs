@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Variables
+EMAIL="ian@boxclever.me"
+DOMAINS="sconesy.boxclever.me home.boxclever.me"
+CERT_DIR="/etc/nginx/certs"
+LOG_FILE="/var/log/lego-renew.log"
+
+# Ensure the log file exists
+touch "$LOG_FILE"
+
+# Function to log messages
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+}
+
+# Stop Nginx
+log "Stopping Nginx..."
+if /etc/init.d/nginx stop >> "$LOG_FILE" 2>&1; then
+    log "Nginx stopped successfully."
+else
+    log "Failed to stop Nginx. Exiting."
+    exit 1
+fi
+
+# Run Lego for each domain
+for DOMAIN in $DOMAINS; do
+    log "Running Lego for domain: $DOMAIN..."
+    if lego --email="$EMAIL" --domains="$DOMAIN" --http run >> "$LOG_FILE" 2>&1; then
+        log "Lego succeeded for domain: $DOMAIN."
+        
+        # Move certificates to the target directory
+        CERT_SUBDIR=".lego/certificates"
+        if [ -d "$CERT_SUBDIR" ]; then
+            log "Moving certificates for $DOMAIN to $CERT_DIR..."
+            if mv "$CERT_SUBDIR"/"$DOMAIN".crt "$CERT_SUBDIR"/"$DOMAIN".key "$CERT_DIR" >> "$LOG_FILE" 2>&1; then
+                log "Certificates for $DOMAIN moved successfully."
+            else
+                log "Failed to move certificates for $DOMAIN. Exiting."
+                /etc/init.d/nginx start >> "$LOG_FILE" 2>&1
+                exit 1
+            fi
+        else
+            log "Certificate directory $CERT_SUBDIR not found. Exiting."
+            /etc/init.d/nginx start >> "$LOG_FILE" 2>&1
+            exit 1
+        fi
+    else
+        log "Lego failed for domain: $DOMAIN. Exiting."
+        /etc/init.d/nginx start >> "$LOG_FILE" 2>&1
+        exit 1
+    fi
+done
+
+# Start Nginx
+log "Starting Nginx..."
+if /etc/init.d/nginx start >> "$LOG_FILE" 2>&1; then
+    log "Nginx started successfully."
+else
+    log "Failed to start Nginx. Exiting."
+    exit 1
+fi
+
+log "Script completed successfully."
+exit 0
